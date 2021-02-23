@@ -43,8 +43,9 @@ while successfully_closed_popup == False:
 #simple storage class to make the organization of review data a little bit easier
 
 class Review(object):
-	def __init__(self, review_date, review_text, star_rating, response_date, response_text, resolution_date, resolution_text, has_response, has_resolution):
+	def __init__(self, review_id, review_date, review_text, star_rating, response_date, response_text, resolution_date, resolution_text, has_response, has_resolution):
 		self.review_date = review_date #string
+		self.review_id = review_id
 		self.review_text = review_text #string
 		self.star_rating = star_rating #integer
 		self.response_date = response_date #string
@@ -99,7 +100,9 @@ def scrape_single_page(driver):
 
 	for review in reviews:
 
+
 		#These are the fields we will be scraping
+		review_id = review['id']
 		review_date = None
 		review_text = ""
 		star_rating = ""
@@ -108,7 +111,6 @@ def scrape_single_page(driver):
 		resolution_date = None
 		resolution_text = ""
 
-		print("Found a review ==============================================================================================")
 		review_body = review.find('div', class_='rvw-bd')
 		review_dates = review_body.find_all('span', class_='ca-txt-cpt')
 		for review_date in review_dates:
@@ -117,14 +119,17 @@ def scrape_single_page(driver):
 			elif 'Original review' in review_date.text:
 				review_date = review_date.text
 
-		star_rating_tag = review.find('meta', itemprop="ratingValue")
-		star_rating = star_rating_tag['content']
+		try:
+			star_rating_tag = review.find('meta', itemprop="ratingValue")
+			star_rating = star_rating_tag['content']
+		except Exception as e:
+			star_rating = ""
 
 		all_paragraph_tags = review_body.find_all('p')
 		for raw_review_text in all_paragraph_tags:
 			if len(raw_review_text.text) > 0:
 				review_text = review_text + raw_review_text.text
-
+				
 		review_resolved = review_body.find('div', class_='rvw-bd__csmr-resp')
 		if review_resolved is not None:
 			raw_resolution_text = review_resolved.find_all('p')
@@ -142,6 +147,7 @@ def scrape_single_page(driver):
 					response_text = response_text + text_item.text
 
 		print("REVIEW DATA: ======================================================================================")
+		print("		Review ID: " + review_id)
 		if review_date is not None:
 			print("		Review date: " + review_date)
 		else:
@@ -170,8 +176,10 @@ def main():
 
 	found_button = True
 	num_iterations = 0
-	while num_iterations < 3: #We want to scrape until we can no longer find the "next page" button onscreen, which is when we know there are no more results
+	while num_iterations < 5: #We want to scrape until we can no longer find the "next page" button onscreen, which is when we know there are no more results
 		print("ITERATION NUMBER " + str(num_iterations))
+		
+
 		if num_iterations == 0:
 
 			#Explanation: We need to scroll down the first page of result to load all of them. Subsequent pages will have all their results loaded
@@ -182,18 +190,24 @@ def main():
 			driver.execute_script("window.scrollTo(0,16000)") #These pieces of code scroll the page down, since new reviews only load once the page has been
 			#scrolled far enough
 			time.sleep(5)
+		else:
+			driver.execute_script("window.scrollTo(0, 1000)")
 
 		time.sleep(5) #Let the page load before we scrape it
 
+
 		#Scraping done in this method, defined above	
 		scrape_single_page(driver)
-
+		
 		time.sleep(5)
 
 
 		#This code attempts to find the button to go to the next page and clicks it 
 		try:
-			next_page_button = driver.find_element_by_xpath('/html/body/main/div[1]/div/div/div[3]/div/nav/a')
+			if num_iterations == 0:
+				next_page_button = driver.find_element_by_xpath('/html/body/main/div[1]/div/div/div[3]/div/nav/a')
+			else:
+				next_page_button = driver.find_element_by_xpath('/html/body/main/div[1]/div/div/div[3]/div/nav/a[2]') 
 			print(next_page_button)
 			found_button = True
 			print("Found the button")
@@ -210,3 +224,10 @@ def main():
 
 main()
 
+'''
+Page 3 to page 4: /html/body/main/div[1]/div/div/div[3]/div/nav/a
+Page 4 to page 5: /html/body/main/div[1]/div/div/div[3]/div/nav/a[2]
+Page 5 to page 6: /html/body/main/div[1]/div/div/div[3]/div/nav/a[2]
+Page 6 to page 7: /html/body/main/div[1]/div/div/div[3]/div/nav/a[2]
+Page 7 to page 8: N/A
+'''

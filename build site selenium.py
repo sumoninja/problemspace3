@@ -26,16 +26,22 @@ expand.click()
 # find element by link text
 reviews = driver.find_element_by_id("review-content")
 
-# dropdown menu
-drop_down = reviews.find_element_by_xpath("/html/body/div[2]/div/div[1]/div/div[3]/section[3]/div/div/div[2]/div/div/div[2]/div/div/div/div/div/div/div/div/div[2]/div[4]/div[3]/div")
-hover = ActionChains(driver).move_to_element(drop_down)
-hover.perform()
+for ind_review in reviews.find_element_by_class_name("bv-content-review"):
+    stars = ind_review.find_element_by_class_name("bv-rating-stars-on")
+    stars = stars.find_element_by_tag_name("span")
+    stars = stars.get_attribute("style")
+    stars = stars.split(" ")[1]
+    print(stars)
 
+    review_title = reviews.find_element_by_class_name("bv-content-title").text
+    print(review_title)
 
-most_helpful = drop_down.find_element_by_xpath("/html/body/div[2]/div/div[1]/div/div[3]/section[3]/div/div/div[2]/div/div/div[2]/div/div/div/div/div/div/div/div/div[2]/div[4]/div[3]/div/select/option[2]")
-most_helpful.click()
+    review_content = reviews.find_element_by_class_name("bv-content-summary-body").text
+    print(review_content)
 
-
+# open more reviews through load more button
+load_more = driver.find_element_by_class_name("bv-content-btn-pages-load-more-text")
+load_more.click()
 
 print("Done")
 

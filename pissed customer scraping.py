@@ -51,23 +51,27 @@ def main():
 
 	time.sleep(10)
 
+	button_found = True
+
 	num_iterations = 0
-	for i in range(0, 5):
+	while button_found:
 		scrape(driver)
 		time.sleep(5)
 		try:
 			if num_iterations == 0:
 				xpath = "/html/body/div[4]/div[4]/div/div[5]/ul/li[9]/a"
-			elif num_iterations == 1 or num_iterations == 2 :
+			elif num_iterations == 1 or num_iterations == 2 or num_iterations == 9 or num_iterations == 10:
 				xpath = "/html/body/div[4]/div[4]/div/div[3]/ul/li[9]/a"
 			else: 
 				xpath = "/html/body/div[4]/div[4]/div/div[3]/ul/li[11]/a"
 			next_button = driver.find_element_by_xpath(xpath) 
 			print("MOVING TO THE NEXT PAGE ===================================================================")
 			next_button.click()
+			button_found = True
 			num_iterations += 1
 		except Exception as e:
 			print(e)
+			button_found = False
 			break
 		time.sleep(10)
 

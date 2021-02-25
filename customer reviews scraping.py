@@ -8,37 +8,13 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import time
 from datetime import datetime
 
 print("Hello world!")
 
-'''
-search_url = 'https://www.consumeraffairs.com/homeowners/delta-faucets.html?#sort=recent&filter=none'
-
-driver = webdriver.Chrome(ChromeDriverManager().install())
-driver.get(search_url)
-
-time.sleep(10)
-'''
-
-#This code closes a popup that sometimes appears onscreen. I'm not sure if it's still needed, since I think the popup will only
-#appear if you move your mouse on the webpage, and obviously we won't be doing any of that
-'''
-successfully_closed_popup = False
-while successfully_closed_popup == False:
-	try:
-		popup_button_no_thanks = driver.find_element_by_xpath('/html/body/div[3]/div[2]/div[2]/div/form/div/div/button[2]')
-		popup_button_no_thanks.click()
-		print("Successfully closed the popup")
-		successfully_closed_popup = True
-	except Exception as e:
-		if not successfully_closed_popup:
-			print(e)
-			print("The popup has not appeared yet")
-			time.sleep(30)
-'''
 
 #simple storage class to make the organization of review data a little bit easier
 
@@ -68,29 +44,6 @@ class Review(object):
 			datetime_obj = datetime.strptime(date_string, '%b %d %Y')
 			return datetime_obj
 
-'''
-driver.execute_script("window.scrollTo(0,9000)")
-time.sleep(5)
-driver.execute_script("window.scrollTo(0,16000)") #These pieces of code scroll the page down, since new reviews only load once the page has been
-#scrolled far enough
-time.sleep(5)
-'''
-
-#This code is WIP. It finds the button to go to the next page of reviews and clicks it.
-'''
-try:
-	next_page_button = driver.find_element_by_xpath('/html/body/main/div[1]/div/div/div[3]/div/nav/a')
-	print(next_page_button)
-	next_page_button.click()
-	print("Found the button")
-except Exception as e:
-	print(e)
-	print("Couldn't find the button")
-
-'''
-print("Made it here")
-
-
 def scrape_single_page(driver):
 	page_source = driver.page_source
 	#print(page_source)
@@ -99,8 +52,6 @@ def scrape_single_page(driver):
 	reviews = soup.find_all('div', class_='rvw js-rvw')
 
 	for review in reviews:
-
-
 		#These are the fields we will be scraping
 		review_id = review['id']
 		review_date = None
@@ -169,6 +120,9 @@ def scrape_single_page(driver):
 def main():
 	search_url = 'https://www.consumeraffairs.com/homeowners/delta-faucets.html?#sort=recent&filter=none'
 
+	chrome_options = Options()
+	chrome_options.headless = True
+
 	driver = webdriver.Chrome(ChromeDriverManager().install())
 	driver.get(search_url)
 
@@ -179,7 +133,6 @@ def main():
 	while num_iterations < 5: #We want to scrape until we can no longer find the "next page" button onscreen, which is when we know there are no more results
 		print("ITERATION NUMBER " + str(num_iterations))
 		
-
 		if num_iterations == 0:
 
 			#Explanation: We need to scroll down the first page of result to load all of them. Subsequent pages will have all their results loaded
@@ -195,12 +148,10 @@ def main():
 
 		time.sleep(5) #Let the page load before we scrape it
 
-
 		#Scraping done in this method, defined above	
 		scrape_single_page(driver)
 		
 		time.sleep(5)
-
 
 		#This code attempts to find the button to go to the next page and clicks it 
 		try:
